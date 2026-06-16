@@ -1,78 +1,150 @@
 package com.hresources.hr.policy_assistant.service;
 
+import com.hresources.hr.policy_assistant.config.PolicyRagProperties;
 import com.hresources.hr.policy_assistant.dto.PolicyAnswerResponse;
+import com.hresources.hr.policy_assistant.dto.PolicyCitationResponse;
 import com.hresources.hr.policy_assistant.dto.PolicyMatchResponse;
 import com.hresources.hr.policy_assistant.service.retrieval.PolicyMatch;
 import com.hresources.hr.policy_assistant.service.retrieval.PolicyRetriever;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 /**
- * Coordinates policy retrieval and converts matches into API responses.
+ * Coordinates vector retrieval and answer generation for policy questions.
  */
 @Service
 public class PolicyAssistantService {
 
-    private static final String NO_MATCH_SOURCE = "knowledge-base-unmatched";
-    private static final String RETRIEVAL_STRATEGY = "keyword-overlap";
-    private static final int SUPPORTING_MATCH_LIMIT = 3;
+    private static final String FALLBACK_ANSWER = "I could not find enough policy context to answer that reliably. Please refine the question or expand the knowledge base.";
 
     private final PolicyRetriever policyRetriever;
+    private final PolicyRagProperties ragProperties;
+    private final ChatClient chatClient;
 
-    public PolicyAssistantService(PolicyRetriever policyRetriever) {
+    /**
+     * Creates the main assistant service with retrieval and chat-generation dependencies.
+     *
+     * @param policyRetriever retriever used to fetch relevant policy chunks
+     * @param ragProperties RAG configuration settings
+     * @param chatClientBuilder autoconfigured chat client builder for the OpenAI model
+     */
+    public PolicyAssistantService(
+            PolicyRetriever policyRetriever,
+            PolicyRagProperties ragProperties,
+            ChatClient.Builder chatClientBuilder) {
         this.policyRetriever = policyRetriever;
+        this.ragProperties = ragProperties;
+        this.chatClient = chatClientBuilder.build();
     }
 
     /**
-     * Answers a user question using the configured local knowledge base.
+     * Answers a user question using vector retrieval plus LLM generation.
      *
      * @param question policy-related question from the caller
-     * @return matched policy answer or a fallback response when nothing matches
+     * @return RAG-generated answer with citations and retrieved chunks
      */
     public PolicyAnswerResponse answerQuestion(String question) {
-        List<PolicyMatch> matches = policyRetriever.findTopMatches(question, SUPPORTING_MATCH_LIMIT);
+        List<PolicyMatch> matches = policyRetriever.findTopMatches(question, ragProperties.topK());
 
         if (matches.isEmpty()) {
             return new PolicyAnswerResponse(
                     question,
-                    "I could not find a matching HR policy yet. Please refine the question or expand the knowledge base.",
-                    NO_MATCH_SOURCE,
-                    0.0,
-                    null,
-                    RETRIEVAL_STRATEGY,
+                    FALLBACK_ANSWER,
+                    ragProperties.chatModel(),
+                    ragProperties.retrievalStrategy(),
+                    List.of(),
                     List.of()
             );
         }
 
-        PolicyMatch topMatch = matches.get(0);
+        String answer = chatClient.prompt()
+                .system(ragProperties.systemPrompt())
+                .user(buildUserPrompt(question, matches))
+                .call()
+                .content();
 
         return new PolicyAnswerResponse(
                 question,
-                topMatch.document().answer(),
-                topMatch.document().source(),
-                topMatch.score(),
-                topMatch.document().id(),
-                RETRIEVAL_STRATEGY,
+                answer,
+                ragProperties.chatModel(),
+                ragProperties.retrievalStrategy(),
                 matches.stream()
-                        .map(this::toMatchResponse)
+                        .map(this::toCitationResponse)
+                        .distinct()
+                        .toList(),
+                matches.stream()
+                        .map(this::toChunkResponse)
                         .toList()
         );
     }
 
     /**
-     * Converts an internal retrieval match into an API-facing supporting match response.
+     * Builds the user prompt containing the question and retrieved chunk context.
      *
-     * @param match internal retrieval match
-     * @return response DTO containing ranked match details
+     * @param question user question to answer
+     * @param matches retrieved policy chunks
+     * @return user prompt text sent to the language model
      */
-    private PolicyMatchResponse toMatchResponse(PolicyMatch match) {
+    private String buildUserPrompt(String question, List<PolicyMatch> matches) {
+        String context = matches.stream()
+                .map(match -> """
+                        [%s#%d]
+                        Title: %s
+                        Source: %s
+                        Content: %s
+                        """.formatted(
+                        match.chunk().policyId(),
+                        match.chunk().chunkIndex(),
+                        match.chunk().title(),
+                        match.chunk().source(),
+                        match.chunk().text()
+                ))
+                .reduce((left, right) -> left + System.lineSeparator() + right)
+                .orElse("");
+
+        return """
+                Question:
+                %s
+
+                Policy context:
+                %s
+
+                Return a concise answer grounded only in the policy context above.
+                If the context is insufficient, clearly say so.
+                Mention the relevant policy source names inside the answer when possible.
+                """.formatted(question, context);
+    }
+
+    /**
+     * Converts a retrieval match into a citation DTO.
+     *
+     * @param match retrieved policy chunk
+     * @return citation describing the retrieved chunk
+     */
+    private PolicyCitationResponse toCitationResponse(PolicyMatch match) {
+        return new PolicyCitationResponse(
+                match.chunk().policyId(),
+                match.chunk().title(),
+                match.chunk().source(),
+                match.chunk().chunkIndex()
+        );
+    }
+
+    /**
+     * Converts a retrieval match into an API-facing chunk response.
+     *
+     * @param match retrieved policy chunk
+     * @return response DTO containing chunk context details
+     */
+    private PolicyMatchResponse toChunkResponse(PolicyMatch match) {
         return new PolicyMatchResponse(
-                match.document().id(),
-                match.document().title(),
-                match.document().source(),
-                match.document().answer(),
-                match.score()
+                match.chunk().policyId(),
+                match.chunk().title(),
+                match.chunk().source(),
+                match.chunk().chunkIndex(),
+                match.chunk().text()
         );
     }
 }
