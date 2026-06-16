@@ -39,7 +39,7 @@ public class KeywordPolicyRetriever implements PolicyRetriever {
             return null;
         }
 
-        List<PolicyDocument> documents = policyKnowledgeBase.documents();
+        List<PolicyDocument> documents = policyKnowledgeBase.getDocuments();
 
         return documents.stream()
                 .map(document -> new PolicyMatch(document, calculateScore(questionTokens, document)))

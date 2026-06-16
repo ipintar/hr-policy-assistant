@@ -36,7 +36,7 @@ public class PolicyKnowledgeBase {
      *
      * @return immutable view of loaded policy documents
      */
-    public List<PolicyDocument> documents() {
+    public List<PolicyDocument> getDocuments() {
         return documents;
     }
 
