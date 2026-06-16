@@ -2,6 +2,7 @@ package com.hresources.hr.policy_assistant.service.retrieval;
 
 import com.hresources.hr.policy_assistant.service.knowledge.PolicyDocument;
 import com.hresources.hr.policy_assistant.service.knowledge.PolicyKnowledgeBase;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
@@ -20,49 +21,69 @@ public class KeywordPolicyRetriever implements PolicyRetriever {
     private static final Pattern TOKEN_SPLIT_PATTERN = Pattern.compile("[^\\p{IsAlphabetic}\\p{IsDigit}]+");
 
     private final PolicyKnowledgeBase policyKnowledgeBase;
+    private final int defaultMaxResults;
+    private final double minimumScore;
 
-    public KeywordPolicyRetriever(PolicyKnowledgeBase policyKnowledgeBase) {
+    /**
+     * Creates a keyword-based retriever backed by the local knowledge base.
+     *
+     * @param policyKnowledgeBase source of searchable policy documents
+     * @param defaultMaxResults default number of matches returned for a search
+     * @param minimumScore minimum score required for a match to be returned
+     */
+    public KeywordPolicyRetriever(
+            PolicyKnowledgeBase policyKnowledgeBase,
+            @Value("${policy.retrieval.max-results:3}") int defaultMaxResults,
+            @Value("${policy.retrieval.min-score:0.20}") double minimumScore) {
         this.policyKnowledgeBase = policyKnowledgeBase;
+        this.defaultMaxResults = defaultMaxResults;
+        this.minimumScore = minimumScore;
     }
 
     /**
-     * Finds the highest-scoring policy match for the given question.
+     * Finds the highest-scoring policy matches for the given question.
      *
      * @param question user question to resolve
-     * @return best matching document or {@code null} when no overlap exists
+     * @param limit maximum number of ranked matches to return
+     * @return ranked list of matching documents
      */
     @Override
-    public PolicyMatch findBestMatch(String question) {
+    public List<PolicyMatch> findTopMatches(String question, int limit) {
         Set<String> questionTokens = tokenize(question);
 
-        if (questionTokens.isEmpty()) {
-            return null;
+        if (questionTokens.isEmpty() || limit <= 0) {
+            return List.of();
         }
 
         List<PolicyDocument> documents = policyKnowledgeBase.getDocuments();
+        int effectiveLimit = Math.min(limit, defaultMaxResults);
 
         return documents.stream()
-                .map(document -> new PolicyMatch(document, calculateScore(questionTokens, document)))
-                .filter(match -> match.score() > 0)
-                .max(Comparator.comparingDouble(PolicyMatch::score))
-                .orElse(null);
+                .map(document -> buildMatch(questionTokens, document))
+                .filter(match -> match.score() >= minimumScore)
+                .sorted(Comparator.comparingDouble(PolicyMatch::score).reversed())
+                .limit(effectiveLimit)
+                .toList();
     }
 
     /**
-     * Calculates a simple relevance score based on token overlap and explicit keyword hits.
+     * Builds a scored retrieval match for a candidate document.
      *
      * @param questionTokens normalized tokens from the input question
      * @param document candidate document being evaluated
-     * @return score in the {@code [0, 1]} range
+     * @return retrieval match containing the score and matched terms
      */
-    private double calculateScore(Set<String> questionTokens, PolicyDocument document) {
+    private PolicyMatch buildMatch(Set<String> questionTokens, PolicyDocument document) {
         Set<String> documentTokens = tokenize(document.title() + " " + document.content() + " " + String.join(" ", document.keywords()));
-        long overlap = questionTokens.stream()
+        List<String> matchedTerms = questionTokens.stream()
                 .filter(documentTokens::contains)
-                .count();
+                .sorted()
+                .toList();
+
+        long overlap = matchedTerms.size();
 
         if (overlap == 0) {
-            return 0;
+            return new PolicyMatch(document, 0.0, List.of());
         }
 
         double keywordBonus = document.keywords().stream()
@@ -70,7 +91,13 @@ public class KeywordPolicyRetriever implements PolicyRetriever {
                 .filter(questionTokens::contains)
                 .count() * 0.15;
 
-        return Math.min(1.0, (double) overlap / questionTokens.size() + keywordBonus);
+        double titleBonus = tokenize(document.title()).stream()
+                .filter(questionTokens::contains)
+                .count() * 0.10;
+
+        double score = Math.min(1.0, (double) overlap / questionTokens.size() + keywordBonus + titleBonus);
+
+        return new PolicyMatch(document, score, matchedTerms);
     }
 
     /**

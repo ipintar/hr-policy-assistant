@@ -40,5 +40,61 @@
       "doctor note",
       "absence"
     ]
+  },
+  {
+    "id": "parental-leave-policy",
+    "title": "Parental Leave Policy",
+    "source": "hr-policy-handbook/parental-leave",
+    "answer": "Parental leave is managed according to local labor law and company policy, and employees should coordinate timelines early with HR and their manager.",
+    "content": "Employees expecting a child should contact HR as early as possible to review local legal entitlements, company-paid benefits, documentation requirements, and return-to-work planning.",
+    "keywords": [
+      "parental",
+      "maternity",
+      "paternity",
+      "newborn",
+      "childcare"
+    ]
+  },
+  {
+    "id": "training-budget-policy",
+    "title": "Learning and Development Policy",
+    "source": "hr-policy-handbook/learning-and-development",
+    "answer": "Employees may request reimbursement for approved learning and development activities within their annual training budget and role relevance guidelines.",
+    "content": "The company supports professional growth through manager-approved courses, certifications, and conferences. Reimbursement depends on budget availability, business relevance, and prior approval.",
+    "keywords": [
+      "training",
+      "course",
+      "certification",
+      "learning",
+      "conference"
+    ]
+  },
+  {
+    "id": "probation-policy",
+    "title": "Probation Period Policy",
+    "source": "hr-policy-handbook/probation",
+    "answer": "New employees are typically subject to a six-month probation period, during which performance, role fit, and onboarding progress are reviewed.",
+    "content": "The standard probation period is six months unless a local contract states otherwise. Managers provide regular feedback and confirm successful completion at the end of the review period.",
+    "keywords": [
+      "probation",
+      "new hire",
+      "onboarding",
+      "trial period",
+      "review period"
+    ]
+  },
+  {
+    "id": "overtime-policy",
+    "title": "Overtime Policy",
+    "source": "hr-policy-handbook/overtime",
+    "answer": "Overtime must be approved in advance when possible and is compensated or balanced according to local law, contract terms, and company policy.",
+    "content": "Employees should not work overtime regularly without manager approval. Recording, compensation, and time-off-in-lieu rules depend on local legal requirements and employment agreements.",
+    "keywords": [
+      "overtime",
+      "extra hours",
+      "time off in lieu",
+      "compensation",
+      "working hours"
+    ]
   }
 ]

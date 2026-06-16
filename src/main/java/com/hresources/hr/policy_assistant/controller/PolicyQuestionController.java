@@ -34,7 +34,7 @@ public class PolicyQuestionController {
     @PostMapping("/ask")
     @Operation(
             summary = "Ask a policy question",
-            description = "Accepts a policy question and returns the best answer from the local HR policy knowledge base."
+            description = "Accepts a policy question and returns the best answer plus supporting ranked matches from the local HR policy knowledge base."
     )
     public PolicyAnswerResponse askPolicyQuestion(@Valid @RequestBody PolicyQuestionRequest request) {
         return policyAssistantService.answerQuestion(request.question());
