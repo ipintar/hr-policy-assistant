@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Handles incoming API requests for HR policy questions.
+ */
 @RestController
 @RequestMapping("/api/policies")
 @Tag(name = "Policies", description = "Endpoints for asking policy-related questions.")
@@ -22,10 +25,16 @@ public class PolicyQuestionController {
         this.policyAssistantService = policyAssistantService;
     }
 
+    /**
+     * Answers a policy question by querying the local knowledge base.
+     *
+     * @param request question payload submitted by the client
+     * @return answer generated from the best matching policy entry
+     */
     @PostMapping("/ask")
     @Operation(
             summary = "Ask a policy question",
-            description = "Accepts a policy question and returns a mock answer for the current MVP stage."
+            description = "Accepts a policy question and returns the best answer from the local HR policy knowledge base."
     )
     public PolicyAnswerResponse askPolicyQuestion(@Valid @RequestBody PolicyQuestionRequest request) {
         return policyAssistantService.answerQuestion(request.question());

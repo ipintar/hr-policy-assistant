@@ -1,0 +1,44 @@
+[
+  {
+    "id": "vacation-policy",
+    "title": "Vacation Leave Policy",
+    "source": "hr-policy-handbook/vacation",
+    "answer": "Full-time employees receive 25 paid vacation days per calendar year, approved by their manager and scheduled in line with team capacity.",
+    "content": "Vacation leave is granted to full-time employees. The yearly allowance is 25 paid days. Employees should request leave in advance and coordinate with their manager to protect team coverage.",
+    "keywords": [
+      "vacation",
+      "leave",
+      "holiday",
+      "paid time off",
+      "days off"
+    ]
+  },
+  {
+    "id": "remote-work-policy",
+    "title": "Remote Work Policy",
+    "source": "hr-policy-handbook/remote-work",
+    "answer": "Employees may work remotely up to 3 days per week with manager approval, provided role requirements and business continuity needs are met.",
+    "content": "Remote work is allowed for eligible roles. Employees can work remotely up to three days each week with prior manager approval. Teams must ensure office coverage, secure access, and uninterrupted delivery.",
+    "keywords": [
+      "remote",
+      "work from home",
+      "hybrid",
+      "office",
+      "home office"
+    ]
+  },
+  {
+    "id": "sick-leave-policy",
+    "title": "Sick Leave Policy",
+    "source": "hr-policy-handbook/sick-leave",
+    "answer": "Employees should inform their manager as soon as possible when they are unable to work due to illness and provide supporting documentation when required by local policy.",
+    "content": "When an employee is sick, they should notify their manager promptly. Sick leave handling depends on local legal requirements and may require medical documentation for extended absence.",
+    "keywords": [
+      "sick",
+      "illness",
+      "medical leave",
+      "doctor note",
+      "absence"
+    ]
+  }
+]

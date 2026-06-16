@@ -7,9 +7,17 @@ import io.swagger.v3.oas.models.info.License;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Provides OpenAPI metadata for the Policy Assistant API.
+ */
 @Configuration
 public class OpenApiConfig {
 
+    /**
+     * Builds the OpenAPI definition exposed by Swagger.
+     *
+     * @return configured OpenAPI metadata
+     */
     @Bean
     public OpenAPI policyAssistantOpenApi() {
         return new OpenAPI()
