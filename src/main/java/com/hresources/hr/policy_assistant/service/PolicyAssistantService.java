@@ -1,5 +1,6 @@
 package com.hresources.hr.policy_assistant.service;
 
+import com.hresources.hr.policy_assistant.config.PolicyAssistantException;
 import com.hresources.hr.policy_assistant.config.PolicyRagProperties;
 import com.hresources.hr.policy_assistant.dto.PolicyAnswerResponse;
 import com.hresources.hr.policy_assistant.dto.PolicyCitationResponse;
@@ -46,6 +47,8 @@ public class PolicyAssistantService {
      * @return RAG-generated answer with citations and retrieved chunks
      */
     public PolicyAnswerResponse answerQuestion(String question) {
+        ensureEnabled();
+
         List<PolicyMatch> matches = policyRetriever.findTopMatches(question, ragProperties.topK());
 
         if (matches.isEmpty()) {
@@ -59,25 +62,38 @@ public class PolicyAssistantService {
             );
         }
 
-        String answer = chatClient.prompt()
-                .system(ragProperties.systemPrompt())
-                .user(buildUserPrompt(question, matches))
-                .call()
-                .content();
+        try {
+            String answer = chatClient.prompt()
+                    .system(ragProperties.systemPrompt())
+                    .user(buildUserPrompt(question, matches))
+                    .call()
+                    .content();
 
-        return new PolicyAnswerResponse(
-                question,
-                answer,
-                ragProperties.chatModel(),
-                ragProperties.retrievalStrategy(),
-                matches.stream()
-                        .map(this::toCitationResponse)
-                        .distinct()
-                        .toList(),
-                matches.stream()
-                        .map(this::toChunkResponse)
-                        .toList()
-        );
+            return new PolicyAnswerResponse(
+                    question,
+                    answer,
+                    ragProperties.chatModel(),
+                    ragProperties.retrievalStrategy(),
+                    matches.stream()
+                            .map(this::toCitationResponse)
+                            .distinct()
+                            .toList(),
+                    matches.stream()
+                            .map(this::toChunkResponse)
+                            .toList()
+            );
+        } catch (Exception exception) {
+            throw new PolicyAssistantException("Failed to generate an answer from the retrieved policy context.", exception);
+        }
+    }
+
+    /**
+     * Ensures that RAG features are enabled before retrieval and generation work begins.
+     */
+    private void ensureEnabled() {
+        if (!ragProperties.enabled()) {
+            throw new PolicyAssistantException("RAG is disabled. Enable POLICY_RAG_ENABLED to answer policy questions.");
+        }
     }
 
     /**

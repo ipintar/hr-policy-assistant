@@ -9,7 +9,13 @@ services:
     ports:
       - "5432:5432"
     volumes:
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
       - pgvector-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U policy_assistant -d policy_assistant"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
 volumes:
   pgvector-data:
