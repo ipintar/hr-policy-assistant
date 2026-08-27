@@ -26,15 +26,15 @@ public class PolicyQuestionController {
     }
 
     /**
-     * Answers a policy question by querying the local knowledge base.
+     * Answers a policy question using vector retrieval and LLM generation.
      *
      * @param request question payload submitted by the client
-     * @return answer generated from the best matching policy entry
+     * @return RAG answer generated from retrieved policy chunks
      */
     @PostMapping("/ask")
     @Operation(
             summary = "Ask a policy question",
-            description = "Accepts a policy question and returns the best answer plus supporting ranked matches from the local HR policy knowledge base."
+            description = "Accepts a policy question and returns a generated answer backed by retrieved policy chunks from the local vector knowledge base."
     )
     public PolicyAnswerResponse askPolicyQuestion(@Valid @RequestBody PolicyQuestionRequest request) {
         return policyAssistantService.answerQuestion(request.question());

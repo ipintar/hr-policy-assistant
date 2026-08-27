@@ -109,7 +109,7 @@ public class PolicyIndexingService {
     /**
      * Ensures that RAG features are currently enabled before indexing work begins.
      */
-    public void ensureEnabled() {
+    private void ensureEnabled() {
         if (!ragProperties.enabled()) {
             throw new PolicyAssistantException("RAG is disabled. Enable POLICY_RAG_ENABLED to use retrieval and indexing features.");
         }

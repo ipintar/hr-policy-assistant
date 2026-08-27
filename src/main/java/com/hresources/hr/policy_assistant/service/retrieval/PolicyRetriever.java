@@ -8,18 +8,6 @@ import java.util.List;
 public interface PolicyRetriever {
 
     /**
-     * Finds the best matching policy chunk for the supplied question.
-     *
-     * @param question user question to evaluate
-     * @return best match or {@code null} when no document is suitable
-     */
-    default PolicyMatch findBestMatch(String question) {
-        return findTopMatches(question, 1).stream()
-                .findFirst()
-                .orElse(null);
-    }
-
-    /**
      * Finds the highest-ranked policy matches for the supplied question.
      *
      * @param question user question to evaluate
