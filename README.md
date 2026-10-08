@@ -57,7 +57,7 @@ The application is configured with environment variables. See [`.env.example`](.
 | `OPENAI_API_KEY` | Yes | None | API key used for chat completions and embeddings |
 | `OPENAI_CHAT_MODEL` | No | `gpt-4.1-mini` | OpenAI model used to generate answers |
 | `OPENAI_EMBEDDING_MODEL` | No | `text-embedding-3-small` | OpenAI model used to create embeddings |
-| `POLICY_DB_URL` | No | `jdbc:postgresql://localhost:5432/policy_assistant` | PostgreSQL JDBC URL |
+| `POLICY_DB_URL` | No | `jdbc:postgresql://127.0.0.1:5433/policy_assistant` | PostgreSQL JDBC URL |
 | `POLICY_DB_USERNAME` | No | `policy_assistant` | PostgreSQL username |
 | `POLICY_DB_PASSWORD` | No | `policy_assistant` | PostgreSQL password |
 | `POLICY_RAG_ENABLED` | No | `true` | Enables policy retrieval and question answering |
@@ -90,7 +90,7 @@ From the repository root, run:
 docker compose up -d
 ```
 
-Docker Compose starts a PostgreSQL instance with the `vector` extension enabled. The database is exposed on port `5432` and its data is persisted in a named Docker volume.
+Docker Compose starts a PostgreSQL instance with the `vector` extension enabled. The database is available on host port `5433` (container port `5432`), and its data is persisted in a named Docker volume.
 
 Check the service status with:
 

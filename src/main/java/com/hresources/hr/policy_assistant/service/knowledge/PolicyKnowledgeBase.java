@@ -1,6 +1,7 @@
 package com.hresources.hr.policy_assistant.service.knowledge;
 
 import com.hresources.hr.policy_assistant.config.PolicyAssistantException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -41,6 +42,7 @@ public class PolicyKnowledgeBase {
      *
      * @param knowledgeBasePath Spring resource pattern pointing to Markdown files
      */
+    @Autowired
     public PolicyKnowledgeBase(@Value("${policy.knowledge-base.path}") String knowledgeBasePath) {
         this(knowledgeBasePath, new PathMatchingResourcePatternResolver());
     }
