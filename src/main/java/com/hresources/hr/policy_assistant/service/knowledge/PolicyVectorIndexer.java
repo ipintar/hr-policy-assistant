@@ -33,7 +33,7 @@ public class PolicyVectorIndexer implements ApplicationRunner, Ordered {
      */
     @Override
     public void run(ApplicationArguments args) {
-        if (!policyIndexingService.getStatus().ragEnabled()) {
+        if (!policyIndexingService.isRagEnabled()) {
             LOGGER.info("Skipping startup policy indexing because RAG is disabled.");
             return;
         }
@@ -43,8 +43,8 @@ public class PolicyVectorIndexer implements ApplicationRunner, Ordered {
             return;
         }
 
-        LOGGER.info("Building policy vector index on startup.");
-        policyIndexingService.rebuildIndex();
+        LOGGER.info("Refreshing the policy vector index on startup.");
+        policyIndexingService.refreshIndex();
     }
 
     /**

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Ask questions about company HR policies.">
+    <title>Policy Assistant</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<main class="app-shell">
+    <header class="app-header">
+        <div>
+            <p class="eyebrow">HR knowledge base</p>
+            <h1>Policy Assistant</h1>
+            <p class="subtitle">Ask a question and get an answer grounded in company policy.</p>
+        </div>
+        <div class="header-actions">
+            <a href="/swagger-ui.html" class="text-link">API docs</a>
+            <button id="new-conversation" class="secondary-button" type="button">New conversation</button>
+        </div>
+    </header>
+
+    <section class="chat-panel" aria-label="Policy conversation">
+        <div id="messages" class="messages" aria-live="polite">
+            <article class="message assistant-message">
+                <div class="message-label">Policy Assistant</div>
+                <p>What would you like to know about company policies?</p>
+            </article>
+        </div>
+
+        <div id="examples" class="examples" aria-label="Example questions">
+            <button type="button" data-question="How many vacation days do employees have?">
+                Vacation allowance
+            </button>
+            <button type="button" data-question="How many days can I work remotely?">
+                Remote work
+            </button>
+            <button type="button" data-question="What is the standard probation period?">
+                Probation period
+            </button>
+        </div>
+
+        <form id="question-form" class="question-form">
+            <label for="question" class="sr-only">Policy question</label>
+            <textarea
+                    id="question"
+                    name="question"
+                    rows="2"
+                    maxlength="2000"
+                    placeholder="Ask about vacation, remote work, sick leave…"
+                    required></textarea>
+            <button id="submit-question" class="primary-button" type="submit">Ask</button>
+        </form>
+        <p id="status" class="status" role="status"></p>
+        <p class="disclaimer">Answers are generated from the available policy documents. Contact HR when a policy does not cover your situation.</p>
+    </section>
+</main>
+
+<script src="/app.js" defer></script>
+</body>
+</html>
