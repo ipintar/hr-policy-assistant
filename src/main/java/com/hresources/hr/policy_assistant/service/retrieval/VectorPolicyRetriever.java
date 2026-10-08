@@ -1,9 +1,11 @@
 package com.hresources.hr.policy_assistant.service.retrieval;
 
 import com.hresources.hr.policy_assistant.service.knowledge.PolicyChunk;
+import com.hresources.hr.policy_assistant.service.knowledge.PolicyIndexingService;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -17,14 +19,19 @@ import java.util.stream.IntStream;
 public class VectorPolicyRetriever implements PolicyRetriever {
 
     private final VectorStore vectorStore;
+    private final PolicyIndexingService policyIndexingService;
 
     /**
      * Creates the retriever backed by a vector store.
      *
      * @param vectorStore vector store used for similarity search
+     * @param policyIndexingService provider of the active index version
      */
-    public VectorPolicyRetriever(VectorStore vectorStore) {
+    public VectorPolicyRetriever(
+            VectorStore vectorStore,
+            PolicyIndexingService policyIndexingService) {
         this.vectorStore = vectorStore;
+        this.policyIndexingService = policyIndexingService;
     }
 
     /**
@@ -40,9 +47,16 @@ public class VectorPolicyRetriever implements PolicyRetriever {
             return List.of();
         }
 
+        String activeVersion = policyIndexingService.getActiveIndexVersion();
+        if (activeVersion == null) {
+            return List.of();
+        }
+
+        FilterExpressionBuilder filterBuilder = new FilterExpressionBuilder();
         List<Document> results = vectorStore.similaritySearch(SearchRequest.builder()
                 .query(question)
                 .topK(limit)
+                .filterExpression(filterBuilder.eq("indexVersion", activeVersion).build())
                 .build());
 
         return IntStream.range(0, results.size())
